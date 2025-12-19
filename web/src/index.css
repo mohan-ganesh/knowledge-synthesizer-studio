@@ -1,0 +1,12 @@
+/* Reset body for full-page application */
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 100%;
+  min-height: 100vh;
+  display: block;
+}
+
+:root {
+  color-scheme: light;
+}

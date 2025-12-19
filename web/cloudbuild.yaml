@@ -1,0 +1,36 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/knowledge-base-web'
+      - '--build-arg'
+      - 'VITE_PROXY_URL=${_VITE_PROXY_URL}'
+      - '--build-arg'
+      - 'VITE_PROJECT_ID=$PROJECT_ID'
+      - '.'
+  
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/knowledge-base-web']
+  
+  # Deploy container to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'knowledge-base-web'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/knowledge-base-web'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+images:
+  - 'gcr.io/$PROJECT_ID/knowledge-base-web'
+
+substitutions:
+  _VITE_PROXY_URL: 'wss://knowledge-base-api-964252795915.us-central1.run.app'

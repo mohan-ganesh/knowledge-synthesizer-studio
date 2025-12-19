@@ -1,6 +1,8 @@
-# Gemini Live API React Demo that acts as a knowledge synthesizer studio
+# Gemini Live API React Demo
 
 A React-based client for Google's Gemini Live API, featuring real-time audio/video streaming and a WebSocket proxy for secure authentication.
+
+[![React Demo Video](https://img.youtube.com/vi/wCrz8tw6xXs/hqdefault.jpg)](https://www.youtube.com/watch?v=wCrz8tw6xXs)
 
 ## Quick Start
 
@@ -47,11 +49,16 @@ Open [http://localhost:5173](http://localhost:5173) to view the app.
 
 ```
 /
-|
-|--server-api           # WebSocket proxy & auth handler
-|
-|--web                  # React application
-
+├── server.py           # WebSocket proxy & auth handler
+├── src/
+│   ├── components/
+│   │   └── LiveAPIDemo.jsx  # Main application logic
+│   ├── utils/
+│   │   ├── gemini-api.js    # Gemini WebSocket client
+│   │   └── media-utils.js   # Audio/Video processing
+│   └── App.jsx              # Root component
+└── public/
+    └── audio-processors/    # Audio worklets
 ```
 
 ## Core APIs
@@ -84,12 +91,4 @@ The app uses AudioWorklets for low-latency audio processing:
 
 - **Model**: Defaults to `gemini-live-2.5-flash-native-audio`
 - **Voice**: Configurable in `LiveAPIDemo.jsx` (Puck, Charon, etc.)
-- **Proxy Port**: Default `8080` (set in `server-api/server.py`)
---**env variables** Create a .env file in the root directory and add the following variables:
-VITE_PROXY_URL=web-socket proxy url
-VITE_PROJECT_ID=your project id
-GCS_BUCKET_NAME=your gcs bucket name
-
-### About the Project
-
-Create a new Virtual Room and join the room using the room id. 
+- **Proxy Port**: Default `8080` (set in `server.py`)
