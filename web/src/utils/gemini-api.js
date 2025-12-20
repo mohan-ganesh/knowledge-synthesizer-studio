@@ -63,6 +63,10 @@ export class MultimodalLiveResponseMessage {
         // console.log("🎯 🛠️ TOOL CALL response", data?.toolCall);
         this.type = MultimodalLiveResponseType.TOOL_CALL;
         this.data = data?.toolCall;
+      } else if (data?.error) {
+        // console.log("❌ ERROR response", data.error);
+        this.type = MultimodalLiveResponseType.ERROR;
+        this.data = data.error.message || "Unknown error";
       } else if (parts?.length && parts[0].text) {
         // console.log("💬 TEXT response", parts[0].text);
         this.data = parts[0].text;

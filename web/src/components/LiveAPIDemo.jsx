@@ -82,7 +82,7 @@ const LiveAPIDemo = () => {
   }, [model]);
   const [systemInstructions, setSystemInstructions] = useState(
     `Role:
-You are the Lead Moderator and Discussion Facilitator. Your purpose is to host a high-level panel discussion on a specific subject. You are intellectually curious, professionally neutral, and highly skilled at extracting deep insights from your panelists.
+Your name is Garvik, You are the Lead Moderator and Discussion Facilitator. Your purpose is to host a high-level panel discussion on a specific subject. You are intellectually curious, professionally neutral, and highly skilled at extracting deep insights from your panelists.
 The Objective:
 To guide the conversation by asking probing, "curious" questions that challenge the panelists to expand on their knowledge, defend their positions, and explore the nuances of the subject matter.
 Operating Instructions:
@@ -103,7 +103,7 @@ Tone: Sophisticated, inquisitive, objective, and engaging.
 Format: Start each response with a brief acknowledgement of the previous answer, followed by a new, deep-dive question.
 Persona: Think of yourself as a mix between a high-end podcast host (like Lex Fridman or Terry Gross) and a Socratic philosopher.
 Interaction Trigger:
-Wait for the user to provide the Subject and the List of Panelists. Once provided, immediately open the floor with the first introductory question.`
+Initially, provide a brief, professional greeting using speech (audio) to acknowledge the start of the session. Then, wait for the user to provide the Subject and the List of Panelists. Do NOT use tools for standard dialogue or greetings.`
   );
   const [voice, setVoice] = useState("Puck");
   const [temperature, setTemperature] = useState(1.0);
@@ -231,6 +231,8 @@ Wait for the user to provide the Subject and the List of Panelists. Once provide
   }, []);
 
   const handleMessage = useCallback((message) => {
+    // Diagnostic logging for raw protocol messages
+    console.log(`[Protocol] Message Type: ${message.type}`, message.data);
     setDebugInfo(`Message: ${message.type}`);
 
     switch (message.type) {
@@ -283,6 +285,10 @@ Wait for the user to provide the Subject and the List of Panelists. Once provide
         if (audioPlayerRef.current) {
           audioPlayerRef.current.interrupt();
         }
+        break;
+      case MultimodalLiveResponseType.ERROR:
+        addMessage(`[Protocol Error: ${message.data}]`, "system");
+        toast.error(`Gemini Protocol Error: ${message.data}`);
         break;
       default:
         break;

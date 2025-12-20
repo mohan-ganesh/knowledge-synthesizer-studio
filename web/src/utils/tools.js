@@ -9,7 +9,7 @@ export class ShowAlertTool extends FunctionCallDefinition {
   constructor() {
     super(
       "show_alert",
-      "Displays an alert dialog box with a message to the user",
+      "Displays a critical system notification to the user. Use only for important announcements or system status, not for conversation.",
       {
         type: "object",
         properties: {
