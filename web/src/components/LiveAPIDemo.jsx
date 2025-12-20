@@ -33,6 +33,7 @@ const LiveAPIDemo = () => {
   const [roomId, setRoomId] = useState(localStorage.getItem("roomId") || "default");
   const [currentRoomName, setCurrentRoomName] = useState(localStorage.getItem("currentRoomName") || "Default Session");
   const [rooms, setRooms] = useState([]);
+  const [isLoadingRooms, setIsLoadingRooms] = useState(false);
   const [virtualRoomName, setVirtualRoomName] = useState("");
 
   useEffect(() => {
@@ -56,6 +57,7 @@ const LiveAPIDemo = () => {
   }, [proxyUrl]);
 
   const fetchRooms = useCallback(async () => {
+    setIsLoadingRooms(true);
     try {
       const baseUrl = getHttpUrl();
       const res = await fetch(`${baseUrl}/rooms`);
@@ -66,43 +68,11 @@ const LiveAPIDemo = () => {
     } catch (e) {
       console.error(e);
       setDebugInfo(`Error fetching rooms: ${e.message}`);
+    } finally {
+      setIsLoadingRooms(false);
     }
   }, [getHttpUrl]);
 
-  const createRoom = useCallback(async () => {
-    if (!virtualRoomName.trim()) {
-      setDebugInfo("Error: Room name is mandatory.");
-      return;
-    }
-    try {
-      const baseUrl = getHttpUrl();
-      console.log("🛠️ Creating room with name:", virtualRoomName);
-      const res = await fetch(`${baseUrl}/room`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: virtualRoomName })
-      });
-      if (!res.ok) throw new Error("Failed to create room");
-      const data = await res.json();
-      console.log("✅ Room response:", data);
-
-      setDebugInfo(`Created virtual room: ${data.name}`);
-      setVirtualRoomName(""); // Clear name input after success
-      setCurrentRoomName(data.name); // Set the current session name
-
-      // Auto-select the new room and connect immediately
-      setRoomId(data.room_id);
-
-      // Pass the new room_id directly to connect to avoid race condition with state
-      connect(data.room_id);
-
-      // Refresh list in background for others
-      fetchRooms();
-    } catch (e) {
-      console.error(e);
-      setDebugInfo(`Error creating room: ${e.message}`);
-    }
-  }, [fetchRooms, getHttpUrl, virtualRoomName]);
 
   useEffect(() => {
     // Auto-correct URL if it's missing /ws (legacy config fix)
@@ -183,8 +153,21 @@ Wait for the user to provide the Subject and the List of Panelists. Once provide
   const videoPreviewRef = useRef(null);
 
   // UI State for Sidebars
-  const [isConfigOpen, setIsConfigOpen] = useState(true);
-  const [isMediaOpen, setIsMediaOpen] = useState(true);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [isMediaOpen, setIsMediaOpen] = useState(false);
+
+  // Handle window resize for sidebars
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        // We don't automatically close them on resize to avoid annoying the user 
+        // if they intentionally opened one, but we could if we wanted to be strict.
+        // For now, let's just leave this here as a placeholder for potential future logic.
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const toggleConfig = () => setIsConfigOpen(!isConfigOpen);
   const toggleMedia = () => setIsMediaOpen(!isMediaOpen);
@@ -306,7 +289,23 @@ Wait for the user to provide the Subject and the List of Panelists. Once provide
     }
   }, [addMessage]);
 
-  const disconnect = () => {
+  const closeRoom = useCallback(async (idToClose) => {
+    try {
+      const baseUrl = getHttpUrl();
+      const res = await fetch(`${baseUrl}/room/${idToClose}/close`, {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error("Failed to close room");
+      setDebugInfo(`Room ${idToClose} closed successfully`);
+    } catch (e) {
+      console.error(e);
+      setDebugInfo(`Error closing room: ${e.message}`);
+    }
+  }, [getHttpUrl]);
+
+  const disconnect = useCallback(async (isIntentional = false) => {
+    const idToClose = roomId;
+
     if (clientRef.current) {
       clientRef.current.disconnect();
       clientRef.current = null;
@@ -334,6 +333,11 @@ Wait for the user to provide the Subject and the List of Panelists. Once provide
     setVideoStreaming(false);
     setScreenSharing(false);
 
+    // Only close on server if it's an intentional exit
+    if (isIntentional && idToClose && idToClose !== "default") {
+      await closeRoom(idToClose);
+    }
+
     // Clear session-specific state and localStorage
     setRoomId("");
     setCurrentRoomName("");
@@ -344,16 +348,32 @@ Wait for the user to provide the Subject and the List of Panelists. Once provide
       videoPreviewRef.current.srcObject = null;
       videoPreviewRef.current.hidden = true;
     }
-  };
 
-  // Cleanup on unmount
+    // Refresh rooms list to reflect closure in lobby
+    fetchRooms();
+  }, [roomId, closeRoom, fetchRooms]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchRooms();
+  }, [fetchRooms]);
+
+  // Store the latest disconnect in a ref for the unmount cleanup
+  const disconnectRef = useRef(disconnect);
+  useEffect(() => {
+    disconnectRef.current = disconnect;
+  }, [disconnect]);
+
+  // Cleanup on unmount only
   useEffect(() => {
     return () => {
-      disconnect();
+      if (disconnectRef.current) {
+        disconnectRef.current(false); // Unintentional disconnect on unmount
+      }
     };
   }, []);
 
-  const connect = async (overrideRoomId = null) => {
+  const connect = useCallback(async (overrideRoomId = null, options = {}) => {
     if (!proxyUrl && !projectId) {
       toast.error("Please provide both a Proxy URL and Project ID");
       return;
@@ -418,13 +438,43 @@ Wait for the user to provide the Subject and the List of Panelists. Once provide
       }
 
       setDebugInfo("Connected successfully");
+
+      // Auto-start media based on preferences
+      // Note: We don't need a delay if the streamers are newly created above
+      if (options.useMic) {
+        toggleAudio();
+      }
+      if (options.useCam) {
+        toggleVideo();
+      }
     } catch (error) {
       console.error("Connection failed:", error);
       setDebugInfo("Error: " + error.message);
     }
-  };
+  }, [
+    proxyUrl,
+    projectId,
+    model,
+    roomId,
+    systemInstructions,
+    enableInputTranscription,
+    enableOutputTranscription,
+    enableGrounding,
+    enableAffectiveDialog,
+    voice,
+    temperature,
+    enableProactiveAudio,
+    disableActivityDetection,
+    silenceDuration,
+    prefixPadding,
+    endSpeechSensitivity,
+    startSpeechSensitivity,
+    volume,
+    handleMessage,
+    disconnect,
+  ]);
 
-  const toggleAudio = async () => {
+  const toggleAudio = useCallback(async () => {
     if (!audioStreaming) {
       try {
         if (!audioStreamerRef.current && clientRef.current) {
@@ -446,9 +496,9 @@ Wait for the user to provide the Subject and the List of Panelists. Once provide
       setAudioStreaming(false);
       addMessage("[Microphone off]", "system");
     }
-  };
+  }, [audioStreaming, selectedMic, addMessage]);
 
-  const toggleVideo = async () => {
+  const toggleVideo = useCallback(async () => {
     if (!videoStreaming) {
       try {
         if (!videoStreamerRef.current && clientRef.current) {
@@ -480,7 +530,42 @@ Wait for the user to provide the Subject and the List of Panelists. Once provide
       }
       addMessage("[Camera off]", "system");
     }
-  };
+  }, [videoStreaming, selectedCamera, addMessage]);
+
+  const createRoom = useCallback(async (options = {}) => {
+    if (!virtualRoomName.trim()) {
+      setDebugInfo("Error: Room name is mandatory.");
+      return;
+    }
+    try {
+      const baseUrl = getHttpUrl();
+      console.log("🛠️ Creating room with name:", virtualRoomName);
+      const res = await fetch(`${baseUrl}/room`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: virtualRoomName })
+      });
+      if (!res.ok) throw new Error("Failed to create room");
+      const data = await res.json();
+      console.log("✅ Room response:", data);
+
+      setDebugInfo(`Created virtual room: ${data.name}`);
+      setVirtualRoomName(""); // Clear name input after success
+      setCurrentRoomName(data.name); // Set the current session name
+
+      // Auto-select the new room and connect immediately
+      setRoomId(data.room_id);
+
+      // Pass the new room_id directly to connect to avoid race condition with state
+      await connect(data.room_id, options);
+
+      // Refresh list in background for others
+      fetchRooms();
+    } catch (e) {
+      console.error(e);
+      setDebugInfo(`Error creating room: ${e.message}`);
+    }
+  }, [fetchRooms, getHttpUrl, virtualRoomName, connect, toggleAudio, toggleVideo]);
 
   const toggleScreen = async () => {
     if (!screenSharing) {
@@ -540,7 +625,7 @@ Wait for the user to provide the Subject and the List of Panelists. Once provide
       <ControlToolbar
         connected={connected}
         onConnect={connect}
-        onDisconnect={disconnect}
+        onDisconnect={() => disconnect(true)} // Intentional disconnect from UI
         isConfigOpen={isConfigOpen}
         toggleConfig={toggleConfig}
         isMediaOpen={isMediaOpen}
@@ -603,6 +688,7 @@ Wait for the user to provide the Subject and the List of Panelists. Once provide
           sendMessage={sendMessage}
           connected={connected}
           rooms={rooms}
+          isLoadingRooms={isLoadingRooms}
           fetchRooms={fetchRooms}
           createRoom={createRoom}
           setRoomId={setRoomId}
@@ -612,6 +698,7 @@ Wait for the user to provide the Subject and the List of Panelists. Once provide
           virtualRoomName={virtualRoomName}
           setVirtualRoomName={setVirtualRoomName}
           onConnect={connect}
+          debugInfo={debugInfo}
         />
 
         <div className={`sidebar-container right ${isMediaOpen ? 'open' : 'closed'}`}>
@@ -633,10 +720,6 @@ Wait for the user to provide the Subject and the List of Panelists. Once provide
         </div>
       </div>
 
-      {/* Debug Info Section */}
-      <div className="debug-info">
-        <pre className="setup-json-display">{debugInfo}</pre>
-      </div>
     </div>
   );
 };
