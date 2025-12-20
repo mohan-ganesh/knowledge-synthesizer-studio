@@ -18,7 +18,14 @@ const ChatPanel = ({
     virtualRoomName,
     setVirtualRoomName,
     onConnect,
-    debugInfo
+    debugInfo,
+    audioStreaming,
+    toggleAudio,
+    videoStreaming,
+    toggleVideo,
+    screenSharing,
+    toggleScreen,
+    videoPreviewRef
 }) => {
     const [isModalOpen, setIsModalOpen] = React.useState(false);
     const [isJoinModalOpen, setIsJoinModalOpen] = React.useState(false);
@@ -232,8 +239,58 @@ const ChatPanel = ({
                         {msg.text}
                     </div>
                 ))}
+
+                {(videoStreaming || screenSharing) && (
+                    <div className="studio-monitor">
+                        <div className="monitor-header">
+                            <span className="live-badge">
+                                <span className="pulse"></span>
+                                ON AIR
+                            </span>
+                            <span className="monitor-label">
+                                {screenSharing ? 'Screen Share' : 'Camera Feed'}
+                            </span>
+                        </div>
+                        <video
+                            ref={videoPreviewRef}
+                            autoPlay
+                            muted
+                            playsInline
+                            className={`monitor-video ${videoStreaming ? 'mirrored' : ''}`}
+                        />
+                    </div>
+                )}
             </div>
             <div className="chat-input-area">
+                <div className="input-actions-left">
+                    <button
+                        className={`mic-toggle-btn ${audioStreaming ? 'active' : ''}`}
+                        onClick={toggleAudio}
+                        title={audioStreaming ? "Mute Microphone" : "Unmute Microphone"}
+                    >
+                        <span className="material-symbols-outlined">
+                            {audioStreaming ? 'mic' : 'mic_off'}
+                        </span>
+                    </button>
+                    <button
+                        className={`cam-toggle-btn ${videoStreaming ? 'active' : ''}`}
+                        onClick={toggleVideo}
+                        title={videoStreaming ? "Stop Camera" : "Start Camera"}
+                    >
+                        <span className="material-symbols-outlined">
+                            {videoStreaming ? 'videocam' : 'videocam_off'}
+                        </span>
+                    </button>
+                    <button
+                        className={`screen-toggle-btn ${screenSharing ? 'active' : ''}`}
+                        onClick={toggleScreen}
+                        title={screenSharing ? "Stop Sharing" : "Share Screen"}
+                    >
+                        <span className="material-symbols-outlined">
+                            {screenSharing ? 'screen_share' : 'stop_screen_share'}
+                        </span>
+                    </button>
+                </div>
                 <input
                     type="text"
                     value={chatInput}
@@ -241,7 +298,7 @@ const ChatPanel = ({
                     onKeyPress={(e) => e.key === "Enter" && sendMessage()}
                     placeholder="Type a message..."
                 />
-                <button onClick={sendMessage}>Send</button>
+                <button className="send-btn" onClick={sendMessage}>Send</button>
             </div>
             {debugInfo && (
                 <div className="debug-info-container">

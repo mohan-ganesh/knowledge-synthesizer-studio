@@ -179,6 +179,10 @@ export class GeminiLiveAPI {
       console.log("Default onClose");
     };
 
+    this.onReconnecting = (attempt, delay) => {
+      console.log(`Default onReconnecting: attempt ${attempt} in ${delay}ms`);
+    };
+
     console.log("Created Gemini Live API object: ", this);
   }
 
@@ -329,6 +333,8 @@ export class GeminiLiveAPI {
     this.retryCount++;
     const delay = Math.pow(2, this.retryCount - 1) * 1000;
     console.log(`🔄 Scheduling reconnect attempt ${this.retryCount} in ${delay}ms...`);
+
+    this.onReconnecting(this.retryCount, delay);
 
     if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout);
 

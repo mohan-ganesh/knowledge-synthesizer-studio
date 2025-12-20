@@ -17,6 +17,7 @@ import "./LiveAPIDemo.css";
 const LiveAPIDemo = () => {
   // Connection State
   const [connected, setConnected] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
   const [debugInfo, setDebugInfo] = useState("Ready to connect...");
   const [setupJson, setSetupJson] = useState(null);
 
@@ -426,10 +427,23 @@ Initially, provide a brief, professional greeting using speech (audio) to acknow
       };
       clientRef.current.onConnectionStarted = () => {
         setConnected(true);
+        setReconnecting(false);
       };
       clientRef.current.onClose = () => {
         setConnected(false);
-        disconnect();
+        // If it was an intentional disconnect, we can clean up everything
+        // Otherwise, the client will attempt to reconnect on its own
+        if (clientRef.current && clientRef.current.intentionalDisconnect) {
+          disconnect(true);
+        }
+      };
+      clientRef.current.onReconnecting = (attempt, delay) => {
+        setReconnecting(true);
+        setDebugInfo(`Reconnecting (Attempt ${attempt})...`);
+        toast.loading(`Connection lost. Retrying in ${delay / 1000}s...`, {
+          id: "reconnect-toast",
+          duration: 2000,
+        });
       };
 
       await clientRef.current.connect();
@@ -516,10 +530,14 @@ Initially, provide a brief, professional greeting using speech (audio) to acknow
             deviceId: selectedCamera,
           });
           setVideoStreaming(true);
-          if (videoPreviewRef.current) {
-            videoPreviewRef.current.srcObject = video.srcObject;
-            videoPreviewRef.current.hidden = false;
-          }
+
+          // Wait for React to render the video element
+          setTimeout(() => {
+            if (videoPreviewRef.current) {
+              videoPreviewRef.current.srcObject = video.srcObject;
+            }
+          }, 100);
+
           addMessage("[Camera on]", "system");
         } else {
           addMessage("[Connect to Gemini first]", "system");
@@ -532,7 +550,6 @@ Initially, provide a brief, professional greeting using speech (audio) to acknow
       setVideoStreaming(false);
       if (videoPreviewRef.current) {
         videoPreviewRef.current.srcObject = null;
-        videoPreviewRef.current.hidden = true;
       }
       addMessage("[Camera off]", "system");
     }
@@ -583,10 +600,14 @@ Initially, provide a brief, professional greeting using speech (audio) to acknow
         if (screenCaptureRef.current) {
           const video = await screenCaptureRef.current.start();
           setScreenSharing(true);
-          if (videoPreviewRef.current) {
-            videoPreviewRef.current.srcObject = video.srcObject;
-            videoPreviewRef.current.hidden = false;
-          }
+
+          // Wait for React to render the video element
+          setTimeout(() => {
+            if (videoPreviewRef.current) {
+              videoPreviewRef.current.srcObject = video.srcObject;
+            }
+          }, 100);
+
           addMessage("[Screen sharing on]", "system");
         } else {
           addMessage("[Connect to Gemini first]", "system");
@@ -597,9 +618,8 @@ Initially, provide a brief, professional greeting using speech (audio) to acknow
     } else {
       if (screenCaptureRef.current) screenCaptureRef.current.stop();
       setScreenSharing(false);
-      if (!videoStreaming && videoPreviewRef.current) {
+      if (videoPreviewRef.current) {
         videoPreviewRef.current.srcObject = null;
-        videoPreviewRef.current.hidden = true;
       }
       addMessage("[Screen sharing off]", "system");
     }
@@ -705,6 +725,13 @@ Initially, provide a brief, professional greeting using speech (audio) to acknow
           setVirtualRoomName={setVirtualRoomName}
           onConnect={connect}
           debugInfo={debugInfo}
+          audioStreaming={audioStreaming}
+          toggleAudio={toggleAudio}
+          videoStreaming={videoStreaming}
+          toggleVideo={toggleVideo}
+          screenSharing={screenSharing}
+          toggleScreen={toggleScreen}
+          videoPreviewRef={videoPreviewRef}
         />
 
         <div className={`sidebar-container right ${isMediaOpen ? 'open' : 'closed'}`}>

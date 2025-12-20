@@ -70,16 +70,9 @@ const MediaSidebar = ({
                         {screenSharing ? "Stop Screen Share" : "Share Screen"}
                     </button>
                 </div>
-                <video
-                    ref={videoPreviewRef}
-                    autoPlay
-                    muted
-                    playsInline
-                    className="video-preview"
-                    hidden
-                />
             </div>
         </div>
+
     );
 };
 

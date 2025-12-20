@@ -186,41 +186,141 @@ body {
 /* Chat Input */
 .chat-input-area {
   display: flex;
-  gap: 12px;
-  padding: 8px 16px;
+  gap: 8px;
+  padding: 6px 6px 6px 16px;
   background-color: var(--bg-panel);
-  border-radius: 24px;
+  border-radius: 28px;
   border: 1px solid var(--border-color);
   align-items: center;
-  box-shadow: 0 2px 6px rgba(60, 64, 67, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+
+.input-actions-left {
+  display: flex;
+  gap: 4px;
+}
+
+.chat-input-area:focus-within {
+  border-color: var(--google-blue);
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.12);
 }
 
 .chat-input-area input {
   flex: 1;
   background: transparent;
   border: none;
-  color: var(--text-primary);
-  padding: 10px 4px;
-  font-size: 1rem;
-}
-
-.chat-input-area input:focus {
   outline: none;
+  padding: 10px 0;
+  font-size: 0.95rem;
+  color: var(--text-primary);
 }
 
-.chat-input-area button {
-  background-color: var(--google-blue);
-  color: #ffffff;
+.mic-toggle-btn,
+.cam-toggle-btn,
+.screen-toggle-btn {
+  background: transparent;
   border: none;
-  padding: 8px 24px;
-  border-radius: 20px;
-  font-weight: 600;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: background-color 0.2s;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
 }
 
-.chat-input-area button:hover {
-  background-color: #1765cc;
+.mic-toggle-btn:hover,
+.cam-toggle-btn:hover,
+.screen-toggle-btn:hover {
+  background-color: rgba(60, 64, 67, 0.04);
+  color: var(--text-primary);
+}
+
+.mic-toggle-btn.active,
+.cam-toggle-btn.active,
+.screen-toggle-btn.active {
+  color: var(--google-red);
+  background-color: rgba(217, 48, 37, 0.08);
+}
+
+/* Studio Monitor Styles */
+.studio-monitor {
+  position: absolute;
+  bottom: 140px;
+  right: 24px;
+  width: 280px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.monitor-header {
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--google-red);
+  letter-spacing: 0.5px;
+}
+
+.pulse {
+  width: 8px;
+  height: 8px;
+  background-color: var(--google-red);
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(217, 48, 37, 0.4);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(217, 48, 37, 0.7);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(217, 48, 37, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(217, 48, 37, 0);
+  }
+}
+
+.monitor-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.monitor-video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background-color: #000;
+}
+
+.monitor-video.mirrored {
+  transform: scaleX(-1);
 }
 
 /* Unified Control Components */
