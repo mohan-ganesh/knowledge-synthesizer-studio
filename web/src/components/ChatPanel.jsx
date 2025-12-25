@@ -103,7 +103,7 @@ const ChatPanel = ({
                                                     <span className="room-date">ID: {room.room_id.substring(0, 8)} • {new Date(room.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                                                 </div>
                                                 <button
-                                                    className="join-btn"
+                                                    className="primary-btn join-btn"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         setRoomToJoin(room);

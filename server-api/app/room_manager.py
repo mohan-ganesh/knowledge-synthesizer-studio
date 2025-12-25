@@ -21,11 +21,22 @@ class RoomManager:
                 return None
         return self.bucket
 
-    def _get_blob(self, room_id):
+    def _get_blob(self, room_id, created_at=None):
         bucket = self._get_bucket()
         if not bucket:
             return None
-        return bucket.blob(f"rooms/{room_id}/metadata.json")
+        
+        # If created_at is provided, use it to determine the path
+        # Otherwise, use current date (for new rooms)
+        if created_at:
+            dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+        else:
+            dt = datetime.utcnow()
+        
+        month = dt.strftime("%Y-%m")
+        day = dt.strftime("%d")
+        
+        return bucket.blob(f"rooms/{month}/{day}/{room_id}/metadata.json")
 
     def create_room(self, name=None):
         """Creates a new room with OPEN status and an explicit name."""
@@ -66,7 +77,7 @@ class RoomManager:
             return []
         
         # List all blobs with prefix 'rooms/'
-        # Structure is rooms/{id}/metadata.json
+        # Structure is rooms/{month}/{day}/{id}/metadata.json
         blobs = bucket.list_blobs(prefix="rooms/")
         rooms = []
         
@@ -93,12 +104,13 @@ class RoomManager:
             
         metadata["status"] = "closed"
         metadata["closed_at"] = datetime.utcnow().isoformat()
-        self._save_metadata(room_id, metadata)
+        # Pass created_at to ensure we save to the correct date folder
+        self._save_metadata(room_id, metadata, metadata.get("created_at"))
         print(f"🔒 Room closed: {room_id}")
         return True
 
-    def _save_metadata(self, room_id, metadata):
-        blob = self._get_blob(room_id)
+    def _save_metadata(self, room_id, metadata, created_at=None):
+        blob = self._get_blob(room_id, created_at or metadata.get("created_at"))
         if blob:
             blob.upload_from_string(json.dumps(metadata), content_type="application/json")
 

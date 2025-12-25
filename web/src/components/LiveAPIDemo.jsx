@@ -8,7 +8,7 @@ import {
   AudioPlayer,
 } from "../utils/media-utils";
 import { ShowAlertTool, AddCSSStyleTool } from "../utils/tools";
-import ControlToolbar from "./ControlToolbar";
+import StudioHeader from "./StudioHeader";
 import ConfigSidebar from "./ConfigSidebar";
 import ChatPanel from "./ChatPanel";
 import MediaSidebar from "./MediaSidebar";
@@ -648,14 +648,16 @@ Initially, provide a brief, professional greeting using speech (audio) to acknow
   return (
     <div className={`live-api-demo ${isConfigOpen ? 'config-open' : ''} ${isMediaOpen ? 'media-open' : ''}`}>
       <Toaster position="top-right" reverseOrder={false} />
-      <ControlToolbar
+
+      {/* Unified Studio Header */}
+      <StudioHeader
         connected={connected}
-        onConnect={connect}
-        onDisconnect={() => disconnect(true)} // Intentional disconnect from UI
+        onDisconnect={() => disconnect(true)}
         isConfigOpen={isConfigOpen}
         toggleConfig={toggleConfig}
         isMediaOpen={isMediaOpen}
         toggleMedia={toggleMedia}
+        activePage="knowledge-synthesizer"
       />
 
       <div className="main-container">

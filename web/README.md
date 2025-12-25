@@ -92,3 +92,18 @@ The app uses AudioWorklets for low-latency audio processing:
 - **Model**: Defaults to `gemini-live-2.5-flash-native-audio`
 - **Voice**: Configurable in `LiveAPIDemo.jsx` (Puck, Charon, etc.)
 - **Proxy Port**: Default `8080` (set in `server.py`)
+
+
+✅ Environment Configuration Verified & Fixed
+
+Your setup is already using the standard Vite convention, which works perfectly for your workflow:
+
+Local (npm run dev):
+Uses .env
+VITE_PROXY_URL=ws://localhost:8080
+
+🚀 How to deploy
+Since you build locally and deploy the dist folder:
+
+Run npm run build (picks up .env.production)
+Run gcloud app deploy

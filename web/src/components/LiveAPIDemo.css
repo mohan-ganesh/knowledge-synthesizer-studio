@@ -49,6 +49,20 @@ body {
   box-shadow: 0 1px 2px rgba(60, 64, 67, 0.08);
 }
 
+/* App-specific Toolbar (below Header) */
+.app-toolbar {
+  height: var(--toolbar-height);
+  background-color: var(--bg-header);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 999;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.08);
+}
+
 .toolbar-left,
 .toolbar-right {
   display: flex;
@@ -86,6 +100,15 @@ body {
   background-color: rgba(26, 115, 232, 0.08);
 }
 
+.icon-btn.disconnect {
+  color: var(--google-red);
+}
+
+.icon-btn.disconnect:hover {
+  background-color: rgba(217, 48, 37, 0.08);
+}
+
+
 /* Main Container & Sidebars */
 .main-container {
   display: flex;
@@ -121,6 +144,133 @@ body {
   pointer-events: none;
 }
 
+/* Studio Header Extras */
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--border-color);
+  margin: 0 8px;
+}
+
+.toolbar-profile-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  object-fit: cover;
+}
+
+.toolbar-profile-icon:hover {
+  border-color: var(--border-color);
+}
+
+.sign-in-btn {
+  background-color: var(--google-blue);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.sign-in-btn:hover {
+  background-color: var(--google-blue);
+  /* Slightly darker blue */
+}
+
+.profile-dropdown-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Ensure dropdown menu text/icons use material symbols if needed or falls back gracefully */
+.dropdown-item .material-symbols-outlined {
+  font-size: 20px;
+  margin-right: 12px;
+  color: var(--text-secondary);
+}
+
+/* === Profile Dropdown Styles (Migrated) === */
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 280px;
+  z-index: 1001;
+  overflow: hidden;
+  padding: 8px 0;
+}
+
+.dropdown-menu.show {
+  display: block;
+}
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.dropdown-profile-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin-right: 12px;
+  object-fit: cover;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: 500;
+  color: #202124;
+  font-size: 1rem;
+}
+
+.user-email {
+  font-size: 14px;
+  color: #5f6368;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin: 8px 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  text-decoration: none;
+  color: #3c4043;
+  font-size: 15px;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f3f4;
+}
+
+/* Sidebar Styling */
 .config-sidebar,
 .media-sidebar {
   width: var(--sidebar-width);
@@ -976,4 +1126,10 @@ button.disconnect:hover {
     padding: 0;
     margin-bottom: 32px;
   }
+}
+
+.header-logo img {
+  height: 50px;
+  width: auto;
+  vertical-align: middle;
 }

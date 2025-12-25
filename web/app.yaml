@@ -1,0 +1,13 @@
+runtime: nodejs20
+service: knowledge-synthesizer
+
+handlers:
+  # Serve static assets, rewriting the URL to remove the /knowledge-synthesizer/ prefix.
+  - url: /knowledge-synthesizer/(.+)
+    static_files: dist/\1
+    upload: dist/(.+)
+
+  # Serve index.html for the app's entry point and client-side routing.
+  - url: /knowledge-synthesizer/.*
+    static_files: dist/index.html
+    upload: dist/index.html

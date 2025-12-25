@@ -26,3 +26,5 @@ steps:
 
 images:
   - 'gcr.io/$PROJECT_ID/knowledge-base-api'
+
+timeout: 300s

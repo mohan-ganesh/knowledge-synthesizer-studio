@@ -58,12 +58,17 @@ class ConversationLogger:
         if not bucket:
             return
 
+        # Get current date for organizing logs
+        now = datetime.datetime.utcnow()
+        month = now.strftime("%Y-%m")  # e.g., "2025-12"
+        day = now.strftime("%d")        # e.g., "20"
+
         for client_id, messages in session_data.items():
             if not messages:
                 continue
 
-            # Format: sessions/{session_id}/{client_id}.jsonl
-            blob_name = f"sessions/{session_id}/{client_id}.jsonl"
+            # Format: sessions/{month}/{day}/{session_id}/{client_id}.jsonl
+            blob_name = f"sessions/{month}/{day}/{session_id}/{client_id}.jsonl"
             blob = bucket.blob(blob_name)
 
             content = ""

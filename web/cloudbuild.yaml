@@ -34,3 +34,5 @@ images:
 
 substitutions:
   _VITE_PROXY_URL: 'wss://knowledge-base-api-964252795915.us-central1.run.app'
+
+timeout: 300s

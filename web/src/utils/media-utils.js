@@ -47,7 +47,7 @@ export class AudioStreamer {
 
       // Load the audio worklet module
       await this.audioContext.audioWorklet.addModule(
-        "/audio-processors/capture.worklet.js"
+        "./audio-processors/capture.worklet.js"
       );
 
       // Create the audio worklet node
@@ -411,7 +411,7 @@ export class AudioPlayer {
 
       // Load the audio worklet from external file
       await this.audioContext.audioWorklet.addModule(
-        "/audio-processors/playback.worklet.js"
+        "./audio-processors/playback.worklet.js"
       );
 
       if (!this.audioContext) return;
