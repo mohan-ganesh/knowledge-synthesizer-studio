@@ -2,6 +2,8 @@
 
 A React-based client for Google's Gemini Live API, featuring real-time audio/video streaming and a WebSocket proxy for secure authentication.
 
+🚀 **Full Guide & Architectural Breakdown**: [https://www.garvik.dev/ai/gemini-live-api-streaming](https://www.garvik.dev/ai/gemini-live-api-streaming)
+
 ## Quick Start
 
 ### 1. Backend Setup
